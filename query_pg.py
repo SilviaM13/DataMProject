@@ -3,7 +3,7 @@ import time
 import pandas as pd
 import statistics
 
-# Configurazione DB
+#configurazione
 conn_params = {
     "dbname": "DBproject",
     "user": "postgres",
@@ -12,7 +12,7 @@ conn_params = {
     "port": "5432"
 }
 
-# Lista delle 5 query (da adattare con i nomi reali dei campi/tabelle se necessario)
+
 queries = [
     ("Query 1", """
         SELECT DISTINCT i.dataoraincidente, i.naturaincidente, i.strada
@@ -68,9 +68,9 @@ queries = [
     """)
 ]
 
-# Parametri
+
 ITERATIONS = 10
-results = []
+mean = []
 dettagli = []
 
 with psycopg2.connect(**conn_params) as conn:
@@ -94,14 +94,12 @@ with psycopg2.connect(**conn_params) as conn:
             print(f"{name} - Iterazione {i+1}: {duration:.2f} ms")
 
         media = statistics.mean(times)
-        deviazione = statistics.stdev(times)
-        results.append({
+        mean.append({
             "Query": name,
-            "Media_ms": round(media, 2),
-            "Deviazione_ms": round(deviazione, 2)
+            "Media_ms": round(media, 2)
         })
 
-# Salvataggi
-pd.DataFrame(results).to_csv("results_postgre.csv", index=False)
+
+pd.DataFrame(mean).to_csv("mean_times_postgre.csv", index=False)
 pd.DataFrame(dettagli).to_csv("dettagli_postgre.csv", index=False)
-print("\nSalvati results_postgre.csv e dettagli_postgre.csv")
+print("\nSalvati mean_times_postgre.csv e dettagli_postgre.csv")

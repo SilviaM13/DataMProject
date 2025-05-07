@@ -1,6 +1,6 @@
 import psycopg2
 
-#modifica questi parametri con i tuoi
+
 db_config = {
     "dbname": "DBproject",
     "user": "postgres",

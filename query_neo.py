@@ -3,14 +3,14 @@ import time
 import pandas as pd
 import statistics
 
-# Configurazione connessione
+
 uri = "bolt://localhost:7687"
 username = "neo4j"
 password = "silviamaca"
 
 driver = GraphDatabase.driver(uri, auth=(username, password))
 
-# Lista delle 5 query Cypher (modellazione ottimale)
+
 queries = [
     ("Query 1", """
         MATCH (p:Persona)-[:LESIONE]->(tl:TipoLesione),
@@ -66,20 +66,20 @@ queries = [
 ]
 
 ITERATIONS = 10
-results = []
-dettagli = []  # ⬅️ Aggiunto per i tempi per iterazione
+mean = []
+dettagli = []  
 
 with driver.session() as session:
     for name, query in queries:
         times = []
         for i in range(ITERATIONS):
             start = time.perf_counter()
-            session.run(query).consume()  # Esegue e consuma il risultato
+            session.run(query).consume() 
             end = time.perf_counter()
-            duration = (end - start) * 1000  # ms
+            duration = (end - start) * 1000  #ms
             times.append(duration)
 
-            # ⬇️ Aggiunta iterazione al CSV dettagliato
+            
             dettagli.append({
                 "Query": name,
                 "Iterazione": i + 1,
@@ -90,16 +90,14 @@ with driver.session() as session:
             print(f"{name} - Iterazione {i+1}: {duration:.2f} ms")
 
         media = statistics.mean(times)
-        deviazione = statistics.stdev(times)
-        results.append({
+        mean.append({
             "Query": name,
-            "Media_ms": round(media, 2),
-            "Deviazione_ms": round(deviazione, 2)
+            "Media_ms": round(media, 2)
         })
 
-# Salvataggi
-pd.DataFrame(results).to_csv("results_neo.csv", index=False)
+
+pd.DataFrame(mean).to_csv("mean_times_neo.csv", index=False)
 pd.DataFrame(dettagli).to_csv("dettagli_neo.csv", index=False)
-print("\nSalvati results_neo.csv e dettagli_neo.csv")
+print("\nSalvati mean_times_neo.csv e dettagli_neo.csv")
 
 driver.close()

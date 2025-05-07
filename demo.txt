@@ -1,0 +1,100 @@
+QUERY 
+numero di incidenti per tipo di illuminazione, 
+considerando solo quelli avvenuti su fondo stradale “Asciutto”
+
+1. POSTGRE
+SELECT s.illuminazione, COUNT(*) AS numero_incidenti
+FROM incidenti i
+JOIN strade s ON i.protocollo = s.protocollo
+WHERE s.fondostradale = 'Asciutto'
+GROUP BY s.illuminazione;
+
+2. NEO OPT / NEO NO OPT
+MATCH (i:Incidente)-[:AVVENUTO_IN]->(s:Strada)
+WHERE s.FondoStradale = 'Aciutto'
+RETURN s.Illuminazione AS Illuminazione, COUNT(i) AS NumeroIncidenti
+ORDER BY NumeroIncidenti DESC;
+
+
+QUERY INSERT
+1. POSTGRE
+INSERT INTO incidenti (protocollo, stazionepolizia, dataoraincidente, strada, naturaincidente, feriti, morti, illesi, longitudine, latitudine, confermato)
+VALUES ('1234567', 1, '2019-12-01 20:00:00', 'Via Test', 'Tamponamento', 1, 0, 1, '12.34', '41.89', 1);
+
+INSERT INTO strade (protocollo, classificazionestrada, strada, localizzazione, particolaritastrada, tipostrada, fondostradale, pavimentazione, segnaletica, condizioneatmosferica, traffico, visibilita, illuminazione)
+VALUES ('1234567', 'Strada Urbana', 'Via Test', 'Centro', 'Curva', 'Due carregiate', 'Asciutto', 'Asfaltata', 'Orizzontale', 'Nebbia', 'Normale', 'Sufficiente', 'Sufficiente');
+
+INSERT INTO coinvolti (protocollo, progressivo, tipoveicolo, statoveicolo, tipopersona, sesso, tipolesione, decedutoospedale, cinturacasco, airbag)
+VALUES ('1234567', 1, 'Autovettura privata', 'Sosta', 'Conducente', 'F', 'Illeso', 'No', 'Utilizzato', 'Inesploso');
+
+2. NEO OPT
+MERGE (i:Incidente {Protocollo: '1234567'})
+SET i.DataOraIncidente = '2019-12-01 20:00:00',
+    i.NaturaIncidente = 'Tamponamento',
+    i.Feriti = 2, i.Morti = 0, i.Illesi = 1,
+    i.Longitudine = '12.34', i.Latitudine = '41.89', i.Confermato = 1
+
+CREATE (s:Strada {
+    nome: 'Via Test',
+    FondoStradale: 'Asciutto',
+    Illuminazione: 'Sufficiente'
+})
+MERGE (i)-[:AVVENUTO_IN]->(s)
+
+MERGE (tp:TipoPersona {nome: 'Conducente'})
+MERGE (tl:TipoLesione {nome: 'Illeso'})
+MERGE (tv:TipoVeicolo {nome: 'Autovettura Privata'})
+
+CREATE (p:Persona {PersonaID: 'demo', Sesso: 'F', DecedutoOspedale: 'No'})
+MERGE (p)-[:TIPO_PERSONA]->(tp)
+MERGE (p)-[:LESIONE]->(tl)
+MERGE (p)-[:COINVOLTA_IN]->(i)
+
+CREATE (v:Veicolo {StatoVeicolo: 'Sosta', CinturaCasco: 'Utilizzato', Airbag: 'Inesploso'})
+MERGE (v)-[:TIPO_VEICOLO]->(tv)
+MERGE (v)-[:PRESENTE_IN]->(i)
+MERGE (p)-[:GUIDAVA]->(v);
+
+
+3. NEO NO OPT 
+MERGE (i:Incidente {Protocollo: '1234567'})
+SET i.DataOraIncidente = '2019-12-01 20:00:00',
+    i.NaturaIncidente = 'Tamponamento',
+    i.Feriti = 2, i.Morti = 0, i.Illesi = 1,
+    i.Longitudine = '12.34', i.Latitudine = '41.89', i.Confermato = 1
+
+CREATE (s:Strada {
+    nome: 'Via Demo',
+    FondoStradale: 'Asciutto',
+    Illuminazione: 'Sufficiente'
+})
+MERGE (i)-[:AVVENUTO_IN]->(s)
+
+CREATE (p:Persona {PersonaID: 'demo', TipoPersona: 'Conducente', Sesso: 'F', TipoLesione: 'Illeso', DecedutoOspedale: 'No'})
+CREATE (v:Veicolo {TipoVeicolo: 'Autovettura privata', StatoVeicolo: 'Sosta', CinturaCasco: 'Utilizzato', Airbag: 'Inesploso'})
+MERGE (p)-[:COINVOLTA_IN]->(i)
+MERGE (v)-[:PRESENTE_IN]->(i)
+MERGE (p)-[:GUIDAVA]->(v);
+
+
+QUERY UPDATE 
+1. POSTGRE
+UPDATE incidenti SET naturaincidente = 'Scontro laterale' WHERE protocollo = '1234567';
+
+2. NEO OPT / NEO NO OPT
+MATCH (i:Incidente {Protocollo: '1234567'})
+SET i.NaturaIncidente = 'Scontro laterale';
+ 
+
+QUERY DELETE
+1. POSTGRE
+DELETE FROM coinvolti WHERE protocollo = '1234567';
+DELETE FROM strade WHERE protocollo = '1234567';
+DELETE FROM incidenti WHERE protocollo = '1234567';
+
+
+2. NEO OPT / NEO NO OPT 
+MATCH (i:Incidente {Protocollo: '1234567'})
+DETACH DELETE i;
+
+

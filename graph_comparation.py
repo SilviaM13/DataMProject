@@ -2,15 +2,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Caricamento dei CSV con i dettagli delle iterazioni
 neo = pd.read_csv("dettagli_neo.csv")
 neo_no_opt = pd.read_csv("dettagli_neo_no_opt.csv")
 postgre = pd.read_csv("dettagli_postgre.csv")
 
-# Unione dei dati
 combined = pd.concat([neo, neo_no_opt, postgre], ignore_index=True)
 
-# Generazione di un grafico per ciascuna query
+#grafico x query
 query_labels = combined['Query'].unique()
 
 for query in query_labels:

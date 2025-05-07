@@ -3,14 +3,13 @@ import time
 import pandas as pd
 import statistics
 
-# Configurazione connessione
+
 uri = "bolt://localhost:7687"
 username = "neo4j"
 password = "silviamaca"
 
 driver = GraphDatabase.driver(uri, auth=(username, password))
 
-# Lista delle 5 query Cypher (modellazione non ottimale)
 queries = [
     ("Query 1", """
         MATCH (i:Incidente)-[:AVVENUTO_IN]->(s:Strada),
@@ -66,7 +65,7 @@ queries = [
 ]
 
 ITERATIONS = 10
-results = []
+mean = []
 dettagli = []
 
 with driver.session() as session:
@@ -89,16 +88,13 @@ with driver.session() as session:
             print(f"{name} - Iterazione {i+1}: {duration:.2f} ms")
 
         media = statistics.mean(times)
-        deviazione = statistics.stdev(times)
-        results.append({
+        mean.append({
             "Query": name,
-            "Media_ms": round(media, 2),
-            "Deviazione_ms": round(deviazione, 2)
+            "Media_ms": round(media, 2)
         })
 
-# Salvataggi
-pd.DataFrame(results).to_csv("results_neo_no_opt.csv", index=False)
+pd.DataFrame(mean).to_csv("mean_times_neo_no_opt.csv", index=False)
 pd.DataFrame(dettagli).to_csv("dettagli_neo_no_opt.csv", index=False)
-print("\nSalvati results_neo_no_opt.csv e dettagli_neo_no_opt.csv")
+print("\nSalvati mean_times_neo_no_opt.csv e dettagli_neo_no_opt.csv")
 
 driver.close()
