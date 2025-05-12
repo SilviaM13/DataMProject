@@ -2,22 +2,14 @@ QUERY
 numero di incidenti per tipo di illuminazione, 
 considerando solo quelli avvenuti su fondo stradale “Asciutto”
 
-1. POSTGRE
+POSTGRE
 SELECT s.illuminazione, COUNT(*) AS numero_incidenti
 FROM incidenti i
 JOIN strade s ON i.protocollo = s.protocollo
 WHERE s.fondostradale = 'Asciutto'
 GROUP BY s.illuminazione;
 
-2. NEO OPT / NEO NO OPT
-MATCH (i:Incidente)-[:AVVENUTO_IN]->(s:Strada)
-WHERE s.FondoStradale = 'Aciutto'
-RETURN s.Illuminazione AS Illuminazione, COUNT(i) AS NumeroIncidenti
-ORDER BY NumeroIncidenti DESC;
-
-
 QUERY INSERT
-1. POSTGRE
 INSERT INTO incidenti (protocollo, stazionepolizia, dataoraincidente, strada, naturaincidente, feriti, morti, illesi, longitudine, latitudine, confermato)
 VALUES ('1234567', 1, '2019-12-01 20:00:00', 'Via Test', 'Tamponamento', 1, 0, 1, '12.34', '41.89', 1);
 
@@ -27,7 +19,25 @@ VALUES ('1234567', 'Strada Urbana', 'Via Test', 'Centro', 'Curva', 'Due carregia
 INSERT INTO coinvolti (protocollo, progressivo, tipoveicolo, statoveicolo, tipopersona, sesso, tipolesione, decedutoospedale, cinturacasco, airbag)
 VALUES ('1234567', 1, 'Autovettura privata', 'Sosta', 'Conducente', 'F', 'Illeso', 'No', 'Utilizzato', 'Inesploso');
 
-2. NEO OPT
+
+QUERY UPDATE
+UPDATE incidenti SET naturaincidente = 'Scontro laterale' WHERE protocollo = '1234567';
+
+QUERY DELETE
+DELETE FROM incidenti WHERE protocollo = '1234567';
+DELETE FROM coinvolti WHERE protocollo = '1234567';
+DELETE FROM strade WHERE protocollo = '1234567';
+
+
+
+QUERY NEO4J OPT / NEO NO OPT
+MATCH (i:Incidente)-[:AVVENUTO_IN]->(s:Strada)
+WHERE s.FondoStradale = 'Asciutto'
+RETURN s.Illuminazione AS Illuminazione, COUNT(i) AS NumeroIncidenti
+ORDER BY NumeroIncidenti DESC;
+
+QUERY INSERT
+1. NEO OPT
 MERGE (i:Incidente {Protocollo: '1234567'})
 SET i.DataOraIncidente = '2019-12-01 20:00:00',
     i.NaturaIncidente = 'Tamponamento',
@@ -56,7 +66,7 @@ MERGE (v)-[:PRESENTE_IN]->(i)
 MERGE (p)-[:GUIDAVA]->(v);
 
 
-3. NEO NO OPT 
+2. NEO NO OPT 
 MERGE (i:Incidente {Protocollo: '1234567'})
 SET i.DataOraIncidente = '2019-12-01 20:00:00',
     i.NaturaIncidente = 'Tamponamento',
@@ -78,23 +88,18 @@ MERGE (p)-[:GUIDAVA]->(v);
 
 
 QUERY UPDATE 
-1. POSTGRE
-UPDATE incidenti SET naturaincidente = 'Scontro laterale' WHERE protocollo = '1234567';
-
-2. NEO OPT / NEO NO OPT
+NEO OPT / NEO NO OPT
 MATCH (i:Incidente {Protocollo: '1234567'})
 SET i.NaturaIncidente = 'Scontro laterale';
  
-
 QUERY DELETE
-1. POSTGRE
-DELETE FROM coinvolti WHERE protocollo = '1234567';
-DELETE FROM strade WHERE protocollo = '1234567';
-DELETE FROM incidenti WHERE protocollo = '1234567';
-
-
-2. NEO OPT / NEO NO OPT 
-MATCH (i:Incidente {Protocollo: '1234567'})
-DETACH DELETE i;
+NEO OPT / NEO NO OPT 
+MATCH (n)
+WHERE n.PersonaID = 'demo'
+   OR n.nome = 'Via Test'
+   OR n.nome = 'Conducente'
+   OR n.nome = 'Illeso'
+   OR n.nome = 'Autovettura Privata'
+DETACH DELETE n;
 
 
